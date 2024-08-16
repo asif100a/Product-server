@@ -2,6 +2,7 @@ import express from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import mongodb from 'mongodb';
+import jwt from 'jsonwebtoken';
 
 // Express application instance
 const app = express();
@@ -28,16 +29,32 @@ const client = new MongoClient(uri, {
   }
 });
 
+// jwt middleware
+const verifyToken = (req, res, next) => {
+  const {user} = req.body;
+  console.log('User from token varification', user);
+  next();
+};
+
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
+    // await client.connect();
+    
+    // jwt api
+    app.post('/jwt', async(req, res) => {
+      const user = req.body;
+      console.log(user);
+      const token = jwt.sign(user, process.env.TOKEN_KEY, {expiresIn: '2h'});
+      console.log(token);
+    })   
+
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
   } finally {
     // Ensures that the client will close when you finish/error
-    await client.close();
+    // await client.close();
   }
 }
 run().catch(console.dir);
