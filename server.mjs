@@ -81,14 +81,25 @@ async function run() {
       // console.log(req.query);
       const page = parseInt(req.query.page);
       const size = parseInt(req.query.size);
+      // Get data by search
+      const search = req.query.search;
+      const query = {
+        'Product Name': {
+          $regex: search, $options: 'i'
+        }
+      };
+      console.log(search);
 
-      const result = await productCollection.find().skip(page * size).limit(size).toArray();
+      const result = await productCollection.find(query)
+        .skip(page * size)
+        .limit(size)
+        .toArray();
       res.status(200).send(result);
     })
 
     app.get('/count', async (req, res) => {
       const count = await productCollection.estimatedDocumentCount();
-      res.status(200).send({count});
+      res.status(200).send({ count });
     })
 
     // Send a ping to confirm a successful connection
