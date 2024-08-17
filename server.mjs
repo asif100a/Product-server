@@ -37,7 +37,7 @@ const client = new MongoClient(uri, {
 // jwt middleware
 const verifyToken = (req, res, next) => {
   const { user } = req.body;
-  console.log('User from token varification', user);
+  // console.log('User from token varification', user);
   next();
 };
 
@@ -78,7 +78,11 @@ async function run() {
 
     // -------------[Products API]-------------
     app.get('/products', async (req, res) => {
-      const result = await productCollection.find().toArray();
+      // console.log(req.query);
+      const page = parseInt(req.query.page);
+      const size = parseInt(req.query.size);
+
+      const result = await productCollection.find().skip(page * size).limit(size).toArray();
       res.status(200).send(result);
     })
 
