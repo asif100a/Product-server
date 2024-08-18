@@ -18,6 +18,7 @@ app.use(express.json());
 app.use(cors({
   origin: [
     'http://localhost:5173',
+    'https://supreme-car-sore.web.app'
   ],
   credentials: true
 }));
@@ -83,18 +84,107 @@ async function run() {
       const size = parseInt(req.query.size);
       // Get data by search
       const search = req.query.search;
+      console.log('search', search);
+      // Filter data by brand name
+      const brand = req.query.brandFilter;
+      console.log('brand', brand);
       const query = {
         'Product Name': {
           $regex: search, $options: 'i'
+        },
+        'Product Name': {
+          $regex: brand, $options: 'i'
         }
       };
-      console.log(search);
 
-      const result = await productCollection.find(query)
+      // Sort function
+      const getSort = (price, time) => {
+        
+      };
+
+      // Sort data by price
+      const priceSort = req.query.priceSort;
+      console.log(priceSort);
+      // Sort data by time and date
+      const timeAndDate = req.query.timeSort
+      console.log(timeAndDate);
+
+      let result;
+      if(priceSort === 'low') {
+        result = await productCollection.find(query)
+        .skip(page * size)
+        .limit(size)
+        .sort({Price: 1})
+        .toArray();
+      }
+      else if(priceSort === 'high') {
+        result = await productCollection.find(query)
+        .skip(page * size)
+        .limit(size)
+        .sort({
+          Price: -1,
+        })
+        .toArray();
+      }
+      else if(timeAndDate === 'new') {
+        result = await productCollection.find(query)
+        .skip(page * size)
+        .limit(size)
+        .sort({
+          'Product Creation Date and Time': 1,
+        })
+        .toArray();
+      }
+      else if(timeAndDate === 'old') {
+        result = await productCollection.find(query)
+        .skip(page * size)
+        .limit(size)
+        .sort({
+          'Product Creation Date and Time': -1,
+        })
+        .toArray();
+      }
+      else{
+        result = await productCollection.find(query)
         .skip(page * size)
         .limit(size)
         .toArray();
+      }
+      // console.log(result)
+
       res.status(200).send(result);
+
+      // // Sort data by price
+      // const priceSort = req.query.priceSort;
+      // // console.log(priceSort);
+      // let sortOrder;
+      // if(priceSort === 'low') {
+      //   sortOrder = {numericPrice: 1};
+      // }
+      // else{
+      //   sortOrder = {numericPrice: -1};
+      // }
+
+      // try{
+      //   const result = await productCollection.aggregate([
+      //     {$match: query},
+      //     {
+      //       $addFields: {
+      //         numericPrice: {
+      //           $toDouble: '$Price'
+      //         }
+      //       }
+      //     },
+      //     {$sort: sortOrder},
+      //     {$skip: page * size},
+      //     {$limit: size}
+      //   ]).toArray();
+
+      //   res.status(200).send(result);
+      // }
+      // catch(error) {
+      //   res.status(500).json({message: error.message});
+      // }
     })
 
     app.get('/count', async (req, res) => {
@@ -103,8 +193,8 @@ async function run() {
     })
 
     // Send a ping to confirm a successful connection
-    await client.db("admin").command({ ping: 1 });
-    console.log("Pinged your deployment. You successfully connected to MongoDB!");
+    // await client.db("admin").command({ ping: 1 });
+    // console.log("Pinged your deployment. You successfully connected to MongoDB!");
   } finally {
     // Ensures that the client will close when you finish/error
     // await client.close();
