@@ -60,9 +60,9 @@ async function run() {
     // jwt api
     app.post('/jwt', async (req, res) => {
       const user = req.body;
-      console.log(user);
+      // console.log(user);
       const token = jwt.sign(user, process.env.TOKEN_KEY, { expiresIn: '2h' });
-      console.log(token);
+      // console.log(token);
 
       // Set token to the Cookie
       res.cookie('Token', token, cookieOptions).send({ success: true });
@@ -84,77 +84,66 @@ async function run() {
       const size = parseInt(req.query.size);
       // Get data by search
       const search = req.query.search;
+      // console.log(search);
+
       // Filter data by brand name
       const brand = req.query.brandFilter;
+
       // Filter data by category name
       const category = req.query.categoryFilter;
-      console.log('category', category);
-      const query = {
-        'Product Name': {
-          $regex: search, $options: 'i'
-        },
-        'Product Name': {
-          $regex: brand, $options: 'i'
-        },
-        Category: {
-          $regex: category, $options: 'i'
-        }
-      };
 
-      // Sort function
-      const getSort = (price, time) => {
-        
-      };
+      // Filte data by price range
+      const price = req.query.priceFilter;
+      const breakDownPrice = price.split('-');
+      const firstPrice = breakDownPrice[0];
+      const secondPrice = breakDownPrice[1] || null;
+      // console.log('Price:', price)
+      // console.log(firstPrice);
+      // console.log(secondPrice);
+
+      let query = {};
+      // If there is a search value
+      if (search) {
+        query['Product Name'] = { $regex: search, $options: 'i' };
+      }
+      // If there is a brand value
+      if (brand) {
+        query['Product Name'] = { $regex: brand, $options: 'i' };
+      }
+      // If there is category value
+      if (category) {
+        query['Category'] = { $regex: category, $options: 'i' };
+      }
+      // If there is a price value
+      if (price) {
+        query['Price'] = { $gte: firstPrice, ...(secondPrice !== null ? { $lte: secondPrice } : { $lte: '200000' }) }
+      }
 
       // Sort data by price
       const priceSort = req.query.priceSort;
-      console.log(priceSort);
+      console.log('price sort:', priceSort);
       // Sort data by time and date
       const timeAndDate = req.query.timeSort
-      console.log(timeAndDate);
+      // console.log(timeAndDate);
 
-      let result;
-      if(priceSort === 'low') {
-        result = await productCollection.find(query)
+      let sort = {};
+      if (priceSort === 'low') {
+        sort = { Price: 1 }
+      }
+      if (priceSort === 'high') {
+        sort = { Price: -1 }
+      }
+      if (timeAndDate === 'new') {
+        sort = { 'Product Creation Date and Time': 1 }
+      }
+      if (timeAndDate === 'old') {
+        sort = { 'Product Creation Date and Time': -1 }
+      }
+      const result = await productCollection.find(query)
         .skip(page * size)
         .limit(size)
-        .sort({Price: 1})
+        .sort(sort)
         .toArray();
-      }
-      else if(priceSort === 'high') {
-        result = await productCollection.find(query)
-        .skip(page * size)
-        .limit(size)
-        .sort({
-          Price: -1,
-        })
-        .toArray();
-      }
-      else if(timeAndDate === 'new') {
-        result = await productCollection.find(query)
-        .skip(page * size)
-        .limit(size)
-        .sort({
-          'Product Creation Date and Time': 1,
-        })
-        .toArray();
-      }
-      else if(timeAndDate === 'old') {
-        result = await productCollection.find(query)
-        .skip(page * size)
-        .limit(size)
-        .sort({
-          'Product Creation Date and Time': -1,
-        })
-        .toArray();
-      }
-      else{
-        result = await productCollection.find(query)
-        .skip(page * size)
-        .limit(size)
-        .toArray();
-      }
-      // console.log(result)
 
       res.status(200).send(result);
 
