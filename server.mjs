@@ -84,16 +84,20 @@ async function run() {
       const size = parseInt(req.query.size);
       // Get data by search
       const search = req.query.search;
-      console.log('search', search);
       // Filter data by brand name
       const brand = req.query.brandFilter;
-      console.log('brand', brand);
+      // Filter data by category name
+      const category = req.query.categoryFilter;
+      console.log('category', category);
       const query = {
         'Product Name': {
           $regex: search, $options: 'i'
         },
         'Product Name': {
           $regex: brand, $options: 'i'
+        },
+        Category: {
+          $regex: category, $options: 'i'
         }
       };
 
