@@ -98,8 +98,8 @@ async function run() {
       const firstPrice = breakDownPrice[0];
       const secondPrice = breakDownPrice[1] || null;
       // console.log('Price:', price)
-      // console.log(firstPrice);
-      // console.log(secondPrice);
+      console.log(firstPrice);
+      console.log(secondPrice);
 
       let query = {};
       // If there is a search value
@@ -146,38 +146,6 @@ async function run() {
         .toArray();
 
       res.status(200).send(result);
-
-      // // Sort data by price
-      // const priceSort = req.query.priceSort;
-      // // console.log(priceSort);
-      // let sortOrder;
-      // if(priceSort === 'low') {
-      //   sortOrder = {numericPrice: 1};
-      // }
-      // else{
-      //   sortOrder = {numericPrice: -1};
-      // }
-
-      // try{
-      //   const result = await productCollection.aggregate([
-      //     {$match: query},
-      //     {
-      //       $addFields: {
-      //         numericPrice: {
-      //           $toDouble: '$Price'
-      //         }
-      //       }
-      //     },
-      //     {$sort: sortOrder},
-      //     {$skip: page * size},
-      //     {$limit: size}
-      //   ]).toArray();
-
-      //   res.status(200).send(result);
-      // }
-      // catch(error) {
-      //   res.status(500).json({message: error.message});
-      // }
     })
 
     app.get('/count', async (req, res) => {
